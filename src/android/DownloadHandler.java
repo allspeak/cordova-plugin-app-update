@@ -47,8 +47,10 @@ public class DownloadHandler extends Handler {
         this.mHashMap = mHashMap;
     }
 
-    public void handleMessage(Message msg) {
-        switch (msg.what) {
+    public void handleMessage(Message msg) 
+    {
+        switch (msg.what) 
+        {
             // 正在下载
             case Constants.DOWNLOAD:
                 // 设置进度条位置
@@ -74,11 +76,11 @@ public class DownloadHandler extends Handler {
         mDownloadDialog.getButton(DialogInterface.BUTTON_POSITIVE).setVisibility(View.VISIBLE); //Download Again
 
         mDownloadDialog.setTitle(msgHelper.getString(MsgHelper.DOWNLOAD_COMPLETE_TITLE));
-        mDownloadDialog.getButton(DialogInterface.BUTTON_NEUTRAL)
-                .setOnClickListener(downloadCompleteOnClick);
+        mDownloadDialog.getButton(DialogInterface.BUTTON_NEUTRAL).setOnClickListener(downloadCompleteOnClick);
     }
 
-    private OnClickListener downloadCompleteOnClick = new OnClickListener() {
+    private OnClickListener downloadCompleteOnClick = new OnClickListener() 
+    {
         @Override
         public void onClick(View view) {
             installApk();
@@ -88,11 +90,13 @@ public class DownloadHandler extends Handler {
     /**
      * 安装APK文件
      */
-    private void installApk() {
+    private void installApk() 
+    {
         LOG.d(TAG, "Installing APK");
 
         File apkFile = new File(mSavePath, mHashMap.get("name")+".apk");
-        if (!apkFile.exists()) {
+        if (!apkFile.exists()) 
+        {
             LOG.e(TAG, "Could not find APK: " + mHashMap.get("name"));
             return;
         }
@@ -100,7 +104,8 @@ public class DownloadHandler extends Handler {
         LOG.d(TAG, "APK Filename: " + apkFile.toString());
 
         // 通过Intent安装APK文件
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N){
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
+        {
             LOG.d(TAG, "Build SDK Greater than or equal to Nougat");
             String applicationId = (String) BuildHelper.getBuildConfigValue((Activity) mContext, "APPLICATION_ID");
             Uri apkUri = FileProvider.getUriForFile(mContext, applicationId + ".appupdate.provider", apkFile);
@@ -108,7 +113,9 @@ public class DownloadHandler extends Handler {
             i.setData(apkUri);
             i.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             mContext.startActivity(i);
-        }else{
+        }
+        else
+        {
             LOG.d(TAG, "Build SDK less than Nougat");
             Intent i = new Intent(Intent.ACTION_VIEW);
             i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

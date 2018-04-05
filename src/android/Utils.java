@@ -13,7 +13,7 @@ public class Utils {
 
         try {
             json.put("code", code);
-            json.put("msg", msg);
+            json.put("message", msg);
         } catch (JSONException e) {
             e.printStackTrace();
         }

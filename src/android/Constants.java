@@ -30,6 +30,8 @@ public interface Constants {
      */
     int REMOTE_FILE_NOT_FOUND = 404;
     int NETWORK_ERROR = 405;
+    int TIMEOUT_ERROR = 406;
+    int CONNECTION_ERROR = 407;
 
     /**
      * 没有相应的方法

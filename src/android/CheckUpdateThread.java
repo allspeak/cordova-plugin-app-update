@@ -1,3 +1,4 @@
+
 package com.vaenow.appupdate.android;
 
 import android.AuthenticationOptions;
@@ -9,7 +10,9 @@ import org.apache.cordova.LOG;
 import org.json.JSONObject;
 import org.json.JSONException;
 
+import java.net.SocketTimeoutException;
 import java.io.FileNotFoundException;
+import java.net.ConnectException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -31,6 +34,7 @@ public class CheckUpdateThread implements Runnable {
     private List<Version> queue;
     private String packageName;
     private String updateXmlUrl;
+    private int timeOutMs;
     private AuthenticationOptions authentication;
     private Handler mHandler;
 
@@ -42,62 +46,34 @@ public class CheckUpdateThread implements Runnable {
         return mHashMap;
     }
 
-    public CheckUpdateThread(Context mContext, Handler mHandler, List<Version> queue, String packageName, String updateXmlUrl, JSONObject options) {
-        this.mContext = mContext;
-        this.queue = queue;
-        this.packageName = packageName;
-        this.updateXmlUrl = updateXmlUrl;
+    public CheckUpdateThread(Context mContext, Handler mHandler, List<Version> queue, String packageName, String updateXmlUrl, int timeoutms, JSONObject options) {
+        this.mContext       = mContext;
+        this.queue          = queue;
+        this.packageName    = packageName;
+        this.updateXmlUrl   = updateXmlUrl;
+        this.timeOutMs      = timeoutms;
         this.authentication = new AuthenticationOptions(options);
-        this.mHandler = mHandler;
+        this.mHandler       = mHandler;
     }
 
     @Override
-    public void run() {
-        int versionCodeLocal = getVersionCodeLocal(mContext); // 获取当前软件版本
-        int versionCodeRemote = getVersionCodeRemote();  //获取服务器当前软件版本
+    public void run() 
+    {
+        InputStream is = returnFileIS(updateXmlUrl, timeOutMs);
+        if(is != null)
+        {
+            int versionCodeLocal = getVersionCodeLocal(mContext); // 获取当前软件版本
+            int versionCodeRemote = getVersionCodeRemote(is);  //获取服务器当前软件版本
 
-        queue.clear(); //ensure the queue is empty
-        queue.add(new Version(versionCodeLocal, versionCodeRemote));
+            queue.clear(); //ensure the queue is empty
+            queue.add(new Version(versionCodeLocal, versionCodeRemote));
 
-        if (versionCodeLocal == 0 || versionCodeRemote == 0) {
-            mHandler.sendEmptyMessage(Constants.VERSION_RESOLVE_FAIL);
-        } else {
-            mHandler.sendEmptyMessage(Constants.VERSION_COMPARE_START);
-        }
-    }
-
-    /**
-     * 通过url返回文件
-     *
-     * @param path
-     * @return
-     */
-    private InputStream returnFileIS(String path) {
-        LOG.d(TAG, "returnFileIS..");
-
-        URL url = null;
-        InputStream is = null;
-
-        try {
-            url = new URL(path);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();//利用HttpURLConnection对象,我们可以从网络中获取网页数据.
-
-            if(this.authentication.hasCredentials()){
-                conn.setRequestProperty("Authorization", this.authentication.getEncodedAuthorization());
+            if (versionCodeLocal == 0 || versionCodeRemote == 0) {
+                mHandler.sendEmptyMessage(Constants.VERSION_RESOLVE_FAIL);
+            } else {
+                mHandler.sendEmptyMessage(Constants.VERSION_COMPARE_START);
             }
-
-            conn.setDoInput(true);
-            conn.connect();
-            is = conn.getInputStream(); //得到网络返回的输入流
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            mHandler.sendEmptyMessage(Constants.REMOTE_FILE_NOT_FOUND);
-        } catch (IOException e) {
-            e.printStackTrace();
-            mHandler.sendEmptyMessage(Constants.NETWORK_ERROR);
         }
-
-        return is;
     }
 
     /**
@@ -133,10 +109,9 @@ public class CheckUpdateThread implements Runnable {
      *
      * @return
      */
-    private int getVersionCodeRemote() {
+    private int getVersionCodeRemote(InputStream is) 
+    {
         int versionCodeRemote = 0;
-
-        InputStream is = returnFileIS(updateXmlUrl);
         // 解析XML文件。 由于XML文件比较小，因此使用DOM方式进行解析
         ParseXmlService service = new ParseXmlService();
         try {
@@ -150,4 +125,53 @@ public class CheckUpdateThread implements Runnable {
 
         return versionCodeRemote;
     }
+
+    /**
+     * 通过url返回文件
+     *
+     * @param path
+     * @return
+     */
+    private InputStream returnFileIS(String path, int timeout) {
+        LOG.d(TAG, "returnFileIS..");
+
+        URL url = null;
+        InputStream is = null;
+
+        try {
+            url = new URL(path);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();//利用HttpURLConnection对象,我们可以从网络中获取网页数据.
+
+            if(this.authentication.hasCredentials()){
+                conn.setRequestProperty("Authorization", this.authentication.getEncodedAuthorization());
+            }
+            conn.setConnectTimeout(timeout);
+            conn.setDoInput(true);
+            conn.connect();
+            is = conn.getInputStream(); //得到网络返回的输入流
+        }
+        catch (SocketTimeoutException e) 
+        {
+            e.printStackTrace();
+            mHandler.sendEmptyMessage(Constants.TIMEOUT_ERROR);
+        }
+        catch (FileNotFoundException e) 
+        {
+            e.printStackTrace();
+            mHandler.sendEmptyMessage(Constants.REMOTE_FILE_NOT_FOUND);
+        }
+        catch (ConnectException e) 
+        {
+            e.printStackTrace();
+            mHandler.sendEmptyMessage(Constants.CONNECTION_ERROR);
+        }
+        catch (IOException e) 
+        {
+            e.printStackTrace();
+            mHandler.sendEmptyMessage(Constants.NETWORK_ERROR);
+        }
+        return is;
+    }
+    
+    // -------------------------------------------------------------------------------------------------
 }

@@ -68,18 +68,39 @@ public class DownloadApkThread implements Runnable {
             if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
                 // 获得存储卡的路径
                 URL url = new URL(mHashMap.get("url"));
-                // 创建连接
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                HttpURLConnection conn;
+                int length;
+                try
+                {
+                    // 创建连接
+                    conn = (HttpURLConnection) url.openConnection();
 
-                if(this.authentication.hasCredentials()){
-                    conn.setRequestProperty("Authorization", this.authentication.getEncodedAuthorization());
+                    if(this.authentication.hasCredentials()){
+                        conn.setRequestProperty("Authorization", this.authentication.getEncodedAuthorization());
+                    }
+
+                    conn.connect();
+                    // 获取文件大小
+                    length = conn.getContentLength();
                 }
-
-                conn.connect();
-                // 获取文件大小
-                int length = conn.getContentLength();
-                // 创建输入流
-                InputStream is = conn.getInputStream();
+                catch (Exception e) 
+                {
+                    mHandler.sendEmptyMessage(Constants.NETWORK_ERROR);
+                    e.printStackTrace();
+                    return;
+                }                
+                InputStream is;
+                try
+                {
+                    // 创建输入流
+                    is = conn.getInputStream();
+                }
+                catch (IOException e) 
+                {
+                    mHandler.sendEmptyMessage(Constants.REMOTE_FILE_NOT_FOUND);
+                    e.printStackTrace();
+                    return;
+                }
 
                 File file = new File(mSavePath);
                 // 判断文件目录是否存在

@@ -34,6 +34,7 @@ public class UpdateManager {
      *   </update>
      */
     private String updateXmlUrl;
+    private int timeOutMs;
     private JSONObject options;
     private JSONArray args;
     private CordovaInterface cordova;
@@ -69,10 +70,11 @@ public class UpdateManager {
 
     public UpdateManager options(JSONArray args, CallbackContext callbackContext)
             throws JSONException {
-        this.args = args;
-        this.callbackContext = callbackContext;
-        this.updateXmlUrl = args.getString(0);
-        this.options = args.getJSONObject(1);
+        this.args               = args;
+        this.callbackContext    = callbackContext;
+        this.updateXmlUrl       = args.getString(0);
+        this.timeOutMs          = args.getInt(1);
+        this.options            = args.getJSONObject(2);
         return this;
     }
 
@@ -82,11 +84,6 @@ public class UpdateManager {
             super.handleMessage(msg);
 
             switch (msg.what) {
-                case Constants.NETWORK_ERROR:
-                    //暂时隐藏错误
-                    //msgBox.showErrorDialog(errorDialogOnClick);
-                    callbackContext.error(Utils.makeJSON(Constants.NETWORK_ERROR, "network error"));
-                    break;
                 case Constants.VERSION_COMPARE_START:
                     compareVersions();
                     break;
@@ -100,22 +97,41 @@ public class UpdateManager {
                     callbackContext.success(Utils.makeJSON(Constants.VERSION_UPDATING, "success, version updating."));
                     break;
                 case Constants.VERSION_NEED_UPDATE:
-                    callbackContext.success(Utils.makeJSON(Constants.VERSION_NEED_UPDATE, "success, need date."));
+                    callbackContext.success(Utils.makeJSON(Constants.VERSION_NEED_UPDATE, "success, need update."));
                     break;
                 case Constants.VERSION_UP_TO_UPDATE:
                     callbackContext.success(Utils.makeJSON(Constants.VERSION_UP_TO_UPDATE, "success, up to date."));
                     break;
+
+                    
+                    
+                case Constants.NETWORK_ERROR:
+                    //暂时隐藏错误
+                    //msgBox.showErrorDialog(errorDialogOnClick);
+                    callbackContext.error(Utils.makeJSON(Constants.NETWORK_ERROR, "network error"));
+                    break;                    
+                case Constants.CONNECTION_ERROR:
+                    //暂时隐藏错误
+                    //msgBox.showErrorDialog(errorDialogOnClick);
+                    callbackContext.error(Utils.makeJSON(Constants.CONNECTION_ERROR, "connection error"));
+                    break;                    
                 case Constants.VERSION_COMPARE_FAIL:
                     callbackContext.error(Utils.makeJSON(Constants.VERSION_COMPARE_FAIL, "version compare fail"));
-                    break;
+                    break;                    
                 case Constants.VERSION_RESOLVE_FAIL:
                     callbackContext.error(Utils.makeJSON(Constants.VERSION_RESOLVE_FAIL, "version resolve fail"));
                     break;
                 case Constants.REMOTE_FILE_NOT_FOUND:
-                    callbackContext.error(Utils.makeJSON(Constants.REMOTE_FILE_NOT_FOUND, "remote file not found"));
+//                    callbackContext.error(Utils.makeJSON(Constants.REMOTE_FILE_NOT_FOUND, "remote file not found"));
+                    Messaging.sendErrorString2Web(callbackContext, "remote file not found", Constants.REMOTE_FILE_NOT_FOUND, true);
+                    break;
+                case Constants.TIMEOUT_ERROR:
+//                    callbackContext.error(Utils.makeJSON(Constants.REMOTE_FILE_NOT_FOUND, "remote file not found"));
+                    Messaging.sendErrorString2Web(callbackContext, "Server is not responding", Constants.TIMEOUT_ERROR, true);
                     break;
                 default:
-                    callbackContext.error(Utils.makeJSON(Constants.UNKNOWN_ERROR, "unknown error"));
+                    Messaging.sendErrorString2Web(callbackContext, "unknown error", Constants.UNKNOWN_ERROR, true);
+//                    callbackContext.error(Utils.makeJSON(Constants.UNKNOWN_ERROR, "unknown error"));
             }
 
         }
@@ -127,7 +143,7 @@ public class UpdateManager {
     public void checkUpdate() {
         LOG.d(TAG, "checkUpdate..");
 
-        checkUpdateThread = new CheckUpdateThread(mContext, mHandler, queue, packageName, updateXmlUrl, options);
+        checkUpdateThread = new CheckUpdateThread(mContext, mHandler, queue, packageName, updateXmlUrl, timeOutMs, options);
         this.cordova.getThreadPool().execute(checkUpdateThread);
         //new Thread(checkUpdateThread).start();
     }
