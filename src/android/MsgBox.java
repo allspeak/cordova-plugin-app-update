@@ -50,7 +50,7 @@ public class MsgBox {
         }
 
         if (!noticeDialog.isShowing()) noticeDialog.show();
-
+        noticeDialog.setCancelable(false);
         noticeDialog.setCanceledOnTouchOutside(false);// 设置点击屏幕Dialog不消失
         return noticeDialog;
     }
@@ -78,7 +78,7 @@ public class MsgBox {
             // 取消更新
             //builder.setNegativeButton(msgHelper.getString("update_cancel"), onClickListener);
             //转到后台更新
-            builder.setNegativeButton(msgHelper.getString(MsgHelper.UPDATE_BG), onClickListenerNeg);
+            //builder.setNegativeButton(msgHelper.getString(MsgHelper.UPDATE_BG), onClickListenerNeg);
             builder.setNeutralButton(msgHelper.getString(MsgHelper.DOWNLOAD_COMPLETE_NEU_BTN), onClickListenerNeu);
             builder.setPositiveButton(msgHelper.getString(MsgHelper.DOWNLOAD_COMPLETE_POS_BTN), onClickListenerPos);
             downloadDialog = builder.create();
@@ -87,10 +87,11 @@ public class MsgBox {
         if (!downloadDialog.isShowing()) downloadDialog.show();
 
         downloadDialog.setTitle(msgHelper.getString(MsgHelper.UPDATING));
-        downloadDialog.getButton(DialogInterface.BUTTON_NEGATIVE).setVisibility(View.VISIBLE); //Update in background
+        //downloadDialog.getButton(DialogInterface.BUTTON_NEGATIVE).setVisibility(View.VISIBLE); //Update in background
         downloadDialog.getButton(DialogInterface.BUTTON_NEUTRAL).setVisibility(View.GONE); //Install Manually
         downloadDialog.getButton(DialogInterface.BUTTON_POSITIVE).setVisibility(View.GONE); //Download Again
 
+        downloadDialog.setCancelable(false);        
         downloadDialog.setCanceledOnTouchOutside(false);// 设置点击屏幕Dialog不消失
         Map<String, Object> ret = new HashMap<String, Object>();
         ret.put("dialog", downloadDialog);
