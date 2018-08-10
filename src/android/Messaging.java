@@ -192,7 +192,7 @@ public class Messaging
             try
             {
                 JSONObject info = new JSONObject(); 
-                info.put("type", action_code);                
+                info.put("code", action_code);                
                 PluginResult result = new PluginResult(PluginResult.Status.OK, info);
                 result.setKeepCallback(keepCallback);
                 callbackContext.sendPluginResult(result);

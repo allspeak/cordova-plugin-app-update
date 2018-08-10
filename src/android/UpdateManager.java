@@ -97,13 +97,15 @@ public class UpdateManager {
                     callbackContext.success(Utils.makeJSON(Constants.VERSION_UPDATING, "success, version updating."));
                     break;
                 case Constants.VERSION_NEED_UPDATE:
-                    callbackContext.success(Utils.makeJSON(Constants.VERSION_NEED_UPDATE, "success, need update."));
+//                    callbackContext.success(Utils.makeJSON(Constants.VERSION_NEED_UPDATE, "success, need update."));
                     break;
                 case Constants.VERSION_UP_TO_UPDATE:
                     callbackContext.success(Utils.makeJSON(Constants.VERSION_UP_TO_UPDATE, "success, up to date."));
                     break;
 
-                    
+                case Constants.UPDATE_CANCELLED:
+                    Messaging.sendCode2Web(callbackContext, Constants.UPDATE_CANCELLED, true);
+                    break;
                     
                 case Constants.NETWORK_ERROR:
                     //暂时隐藏错误
@@ -165,7 +167,8 @@ public class UpdateManager {
             } else {
                 LOG.d(TAG, "need update");
                 // 显示提示对话框
-                msgBox.showNoticeDialog(noticeDialogOnClick);
+//                msgBox.showNoticeDialog(noticeDialogOnDownloadClick);
+                msgBox.showNoticeDialog(noticeDialogOnDownloadClick, noticeDialogOnCancelClick);
                 mHandler.sendEmptyMessage(Constants.VERSION_NEED_UPDATE);
             }
         } else {
@@ -175,11 +178,19 @@ public class UpdateManager {
         }
     }
 
-    private OnClickListener noticeDialogOnClick = new OnClickListener() {
+    private OnClickListener noticeDialogOnDownloadClick = new OnClickListener() {
         @Override
         public void onClick(DialogInterface dialog, int which) {
             dialog.dismiss();
             mHandler.sendEmptyMessage(Constants.DOWNLOAD_CLICK_START);
+        }
+    };
+
+    private OnClickListener noticeDialogOnCancelClick = new OnClickListener() {
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+            dialog.dismiss();
+            mHandler.sendEmptyMessage(Constants.UPDATE_CANCELLED);
         }
     };
 

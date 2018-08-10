@@ -52,6 +52,7 @@ appupdate.ENUM.PLUGIN =
     VERSION_NEED_UPDATE     : 201, //检查到需要更新； need update
     VERSION_UP_TO_UPDATE    : 202, //软件是不需要更新；version up to date
     VERSION_UPDATING        : 203, //软件正在更新；version is updating
+    UPDATE_CANCELLED        : 204, //软件正在更新；version is updating
 
     /**
      * 版本解析错误

@@ -23,6 +23,9 @@ public class MsgHelper {
     public static String UPDATE_ERROR_MESSAGE = "update_error_message";
     public static String UPDATE_ERROR_YES_BTN = "update_error_yes_btn";
 
+    public static String UPDATE_CANCEL_BTN = "update_cancel";
+    
+    
 
     MsgHelper(String packageName, Resources resources) {
         this.packageName = packageName;

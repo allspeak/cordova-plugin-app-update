@@ -55,6 +55,30 @@ public class MsgBox {
         return noticeDialog;
     }
 
+    /**
+     * 显示软件更新对话框
+     *
+     * @param onClickListener
+     */
+    public Dialog showNoticeDialog(OnClickListener onClickListenerUpdate, OnClickListener onClickListenerCancel) {
+        if (noticeDialog == null) {
+            LOG.d(TAG, "showNoticeDialog");
+            // 构造对话框
+            AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+            builder.setTitle(msgHelper.getString(MsgHelper.UPDATE_TITLE));
+            builder.setMessage(msgHelper.getString(MsgHelper.UPDATE_MESSAGE));
+            // 更新
+            builder.setPositiveButton(msgHelper.getString(MsgHelper.UPDATE_UPDATE_BTN), onClickListenerUpdate);
+            builder.setNeutralButton(msgHelper.getString(MsgHelper.UPDATE_CANCEL_BTN), onClickListenerCancel);
+            noticeDialog = builder.create();
+        }
+
+        if (!noticeDialog.isShowing()) noticeDialog.show();
+        noticeDialog.setCancelable(false);
+        noticeDialog.setCanceledOnTouchOutside(false);// 设置点击屏幕Dialog不消失
+        return noticeDialog;
+    }
+
 
     /**
      * 显示软件下载对话框
